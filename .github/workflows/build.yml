@@ -24,7 +24,7 @@ jobs:
       - name: Find and Unzip Project
         run: |
           ZIP_FILE=$(find . -iname "*.zip" -type f | head -n 1)
-          if [ -z "$ZIP_FILE" ]; me
+          if [ -z "$ZIP_FILE" ]; then
             echo "Error: No zip file found!"
             exit 1
           fi
@@ -46,6 +46,7 @@ jobs:
           cd android_project
           echo "android.disallowKotlinSourceSets=false" >> gradle.properties
           echo "kotlin.suppressKotlinVersionCompatibilityCheck=true" >> gradle.properties
+          echo "kotlin.compiler.suppressKotlinVersionCompatibilityCheck=true" >> gradle.properties
           echo "androidx.compose.compiler.suppressKotlinVersionCompatibilityCheck=true" >> gradle.properties
 
       - name: Ensure Gradle Wrapper
