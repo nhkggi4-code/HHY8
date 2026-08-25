@@ -54,10 +54,27 @@ jobs:
           fi
           chmod +x gradlew
 
+      - name: Force Compose Compiler Upgrade
+        run: |
+          cd android_project
+          cat << 'EOF' > fix-compose.gradle
+          allprojects {
+              afterEvaluate { project ->
+                  try {
+                      if (project.extensions.findByName('android') != null) {
+                          project.android.composeOptions.kotlinCompilerExtensionVersion = "1.5.14"
+                      }
+                  } catch (Exception e) {
+                      // تجاهل إذا لم يكن المشروع يستخدم Compose
+                  }
+              }
+          }
+          EOF
+
       - name: Build Debug APK
         run: |
           cd android_project
-          ./gradlew assembleDebug -Pplugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true
+          ./gradlew assembleDebug --init-script fix-compose.gradle -Pplugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
