@@ -41,12 +41,10 @@ jobs:
             fi
           fi
 
-      - name: Fix Properties & Inject Suppressions
+      - name: Fix Properties
         run: |
           cd android_project
           echo "android.disallowKotlinSourceSets=false" >> gradle.properties
-          echo "kotlin.suppressKotlinVersionCompatibilityCheck=true" >> gradle.properties
-          echo "android.suppressUnsupportedCompileSdk=34" >> gradle.properties
 
       - name: Ensure Gradle Wrapper
         run: |
@@ -59,12 +57,7 @@ jobs:
       - name: Build Debug APK
         run: |
           cd android_project
-          ./gradlew assembleDebug \
-            -Pplugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true \
-            -Pkotlin.suppressKotlinVersionCompatibilityCheck=true \
-            -x test \
-            -x testDebugUnitTest \
-            -x testReleaseUnitTest
+          ./gradlew assembleDebug -Pplugin:androidx.compose.compiler.plugins.kotlin:suppressKotlinVersionCompatibilityCheck=true
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
