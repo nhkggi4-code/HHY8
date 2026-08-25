@@ -23,7 +23,7 @@ jobs:
 
       - name: Find and Unzip Project
         run: |
-          ZIP_FILE=$(find . -name "*.zip" -type f | head -n 1)
+          ZIP_FILE=$(find . -iname "*.zip" -type f | head -n 1)
           if [ -z "$ZIP_FILE" ]; then
             echo "Error: No zip file found!"
             exit 1
@@ -40,6 +40,11 @@ jobs:
               mv $SUBDIR/* android_project/ 2>/dev/null || true
             fi
           fi
+
+      - name: Fix Kotlin SourceSets Properties
+        run: |
+          cd android_project
+          echo "android.disallowKotlinSourceSets=false" >> gradle.properties
 
       - name: Ensure Gradle Wrapper
         run: |
