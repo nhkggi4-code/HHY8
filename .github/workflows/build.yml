@@ -1,0 +1,61 @@
+name: Build Android APK
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Find and Unzip Project
+        run: |
+          ZIP_FILE=$(find . -name "*.zip" -type f | head -n 1)
+          if [ -z "$ZIP_FILE" ]; then
+            echo "Error: No zip file found!"
+            exit 1
+          fi
+          echo "Extracting $ZIP_FILE..."
+          unzip -o "$ZIP_FILE" -d android_project
+
+      - name: Normalize Project Root
+        run: |
+          if [ ! -f "android_project/build.gradle.kts" ] && [ ! -f "android_project/build.gradle" ]; then
+            SUBDIR=$(find android_project -maxdepth 2 -name "build.gradle*" | head -n 1 | xargs dirname)
+            if [ -n "$SUBDIR" ]; then
+              echo "Moving files from $SUBDIR to android_project..."
+              mv $SUBDIR/* android_project/ 2>/dev/null || true
+            fi
+          fi
+
+      - name: Ensure Gradle Wrapper
+        run: |
+          cd android_project
+          if [ ! -f "gradlew" ]; then
+            gradle wrapper
+          fi
+          chmod +x gradlew
+
+      - name: Build Debug APK
+        run: |
+          cd android_project
+          ./gradlew assembleDebug --stacktrace
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-debug
+          path: android_project/app/build/outputs/apk/debug/*.apk
